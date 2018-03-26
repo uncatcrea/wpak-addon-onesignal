@@ -26,6 +26,7 @@ if ( !class_exists( 'WpAppKitOneSignal' ) ) {
             add_action( 'plugins_loaded', array( __CLASS__, 'plugins_loaded' ) );
             add_filter( 'wpak_licenses', array( __CLASS__, 'add_license' ) );
             add_filter( 'wpak_app_index_content', array( __CLASS__, 'add_onesignal_script_to_index' ), 10, 3 );
+            add_filter( 'wpak_pwa_manifest', array( __CLASS__, 'add_onesignal_pwa_manifest_fields' ), 10, 2 );
         }
 
         /**
@@ -42,10 +43,14 @@ if ( !class_exists( 'WpAppKitOneSignal' ) ) {
 
             $addon->set_location( __FILE__ );
 
+            //Native plateforms:
             $addon->add_js( 'js/wpak-onesignal.js', 'module' );
-            
             $addon->add_js( 'js/wpak-onesignal-app.js', 'theme', 'after' ); 
             //After theme so that we can catch notification events in theme.
+
+            //PWA plateform:
+            $addon->add_js( 'js/vendor/OneSignalSDKWorker.js', 'module' );
+            $addon->add_js( 'js/vendor/OneSignalSDKUpdaterWorker.js', 'module' );
 
             $addon->require_php( dirname(__FILE__) .'/wpak-onesignal-bo-settings.php' );
 
@@ -98,6 +103,18 @@ if ( !class_exists( 'WpAppKitOneSignal' ) ) {
             $index_content = str_replace( '</head>', "\r\n". $onesignal_script ."\r\n</head>", $index_content );
 
             return $index_content;
+        }
+
+        public static function add_onesignal_pwa_manifest_fields( $manifest, $app_id ) {
+
+            if ( !WpakAddons::addon_activated_for_app( self::slug, $app_id ) ) {
+                return $manifest;
+            }
+
+            $manifest['gcm_sender_id'] = "482941778795";
+            $manifest['gcm_sender_id_comment'] = "Do not change the GCM Sender ID";
+
+            return $manifest;
         }
 
         /**
