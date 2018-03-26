@@ -33,6 +33,11 @@ if ( !class_exists( 'WpakOneSignalAdmin' ) ) {
             );
         }
 
+        public static function get_onesignal_app_id( $app_id ) {
+            $options = WpakOptions::get_app_options( $app_id );
+            return !empty( $options['onesignal']['app_id'] ) ? $options['onesignal']['app_id'] : '';
+        }
+
         /**
          * Displays OneSignal configuration meta box on backoffice form.
          *
@@ -40,13 +45,13 @@ if ( !class_exists( 'WpakOneSignalAdmin' ) ) {
          * @param array                 $current_box    The box settings.
          */
         public static function inner_config_box( $post, $current_box ) {
-            $options = WpakOptions::get_app_options( $post->ID );
+            $onesignal_app_id = self::get_onesignal_app_id( $post->ID );
             ?>
             <a href="#" class="hide-if-no-js wpak_help"><?php _e( 'Help me', WpAppKitOneSignal::i18n_domain ); ?></a>
             <div class="wpak_settings field-group">
                 <div class="field-group">
                     <label for="wpak_onesignal_pwid"><?php _e( 'OneSignal App ID', WpAppKitOneSignal::i18n_domain ) ?></label>
-                    <input id="wpak_onesignal_app_id" type="text" name="wpak_app_options[onesignal][app_id]" value="<?php echo $options['onesignal']['app_id'] ?>" />
+                    <input id="wpak_onesignal_app_id" type="text" name="wpak_app_options[onesignal][app_id]" value="<?php echo esc_attr( $onesignal_app_id ); ?>" />
                     <span class="description"><?php _e( 'Provided in the OneSignal interface: open your app, go to "App Settings", then "Keys & Ids"', WpAppKitOneSignal::i18n_domain ) ?></span>
                 </div>
             </div>

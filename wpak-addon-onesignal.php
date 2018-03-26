@@ -24,7 +24,8 @@ if ( !class_exists( 'WpAppKitOneSignal' ) ) {
             add_filter( 'wpak_addons', array( __CLASS__, 'wpak_addons' ) );
             add_filter( 'wpak_default_phonegap_build_plugins', array( __CLASS__, 'wpak_default_phonegap_build_plugins' ), 10, 3 );
             add_action( 'plugins_loaded', array( __CLASS__, 'plugins_loaded' ) );
-            //add_filter( 'wpak_licenses', array( __CLASS__, 'add_license' ) );
+            add_filter( 'wpak_licenses', array( __CLASS__, 'add_license' ) );
+            add_filter( 'wpak_app_index_content', array( __CLASS__, 'add_onesignal_script_to_index' ), 10, 3 );
         }
 
         /**
@@ -71,6 +72,32 @@ if ( !class_exists( 'WpAppKitOneSignal' ) ) {
             }
 
             return $default_plugins;
+        }
+
+        /**
+         * Add OneSignal script to index.html
+         */
+        public static function add_onesignal_script_to_index( $index_content, $app_id, $export_type ) {
+            
+            if ( !WpakAddons::addon_activated_for_app( self::slug, $app_id ) || $export_type !== 'pwa' ) {
+                return $index_content;
+            }
+
+            $app_id = WpakOneSignalAdmin::get_onesignal_app_id( $app_id );
+
+            $onesignal_script = '<script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async=""></script>'."\r\n";
+            $onesignal_script .= '<script>'."\r\n";
+            $onesignal_script .= '    var OneSignal = window.OneSignal || [];'."\r\n";
+            $onesignal_script .= '    OneSignal.push(function() {'."\r\n";
+            $onesignal_script .= '        OneSignal.init({'."\r\n";
+            $onesignal_script .= '            appId: "'. esc_attr( $app_id ) .'",'."\r\n";
+            $onesignal_script .= '        });'."\r\n";
+            $onesignal_script .= '    });'."\r\n";
+            $onesignal_script .= '</script>'."\r\n";
+
+            $index_content = str_replace( '</head>', "\r\n". $onesignal_script ."\r\n</head>", $index_content );
+
+            return $index_content;
         }
 
         /**
