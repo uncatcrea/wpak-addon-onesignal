@@ -27,6 +27,7 @@ if ( !class_exists( 'WpAppKitOneSignal' ) ) {
             add_filter( 'wpak_licenses', array( __CLASS__, 'add_license' ) );
             add_filter( 'wpak_app_index_content', array( __CLASS__, 'add_onesignal_script_to_index' ), 10, 3 );
             add_filter( 'wpak_pwa_manifest', array( __CLASS__, 'add_onesignal_pwa_manifest_fields' ), 10, 2 );
+            add_filter( 'wpak_pwa_service_worker', array( __CLASS__, 'add_onesignal_service_worker' ), 10, 2 );
         }
 
         /**
@@ -43,14 +44,9 @@ if ( !class_exists( 'WpAppKitOneSignal' ) ) {
 
             $addon->set_location( __FILE__ );
 
-            //Native plateforms:
+            //Native plateforms JS:
             $addon->add_js( 'js/wpak-onesignal.js', 'module' );
-            $addon->add_js( 'js/wpak-onesignal-app.js', 'theme', 'after' ); 
-            //After theme so that we can catch notification events in theme.
-
-            //PWA plateform:
-            $addon->add_js( 'js/vendor/OneSignalSDKWorker.js', 'module' );
-            $addon->add_js( 'js/vendor/OneSignalSDKUpdaterWorker.js', 'module' );
+            $addon->add_js( 'js/wpak-onesignal-app.js', 'theme', 'after' ); //After theme so that we can catch notification events in theme.
 
             $addon->require_php( dirname(__FILE__) .'/wpak-onesignal-bo-settings.php' );
 
@@ -115,6 +111,18 @@ if ( !class_exists( 'WpAppKitOneSignal' ) ) {
             $manifest['gcm_sender_id_comment'] = "Do not change the GCM Sender ID";
 
             return $manifest;
+        }
+
+        public static function add_onesignal_service_worker( $service_worker_content, $app_id ) {
+            
+            if ( !WpakAddons::addon_activated_for_app( self::slug, $app_id ) ) {
+                return $manifest;
+            }
+
+            $onesignal_service_worker = "importScripts('https://cdn.onesignal.com/sdks/OneSignalSDK.js');\n\n";
+            $service_worker_content = $onesignal_service_worker . $service_worker_content;
+
+            return $service_worker_content;
         }
 
         /**
