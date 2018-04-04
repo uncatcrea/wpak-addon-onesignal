@@ -116,7 +116,7 @@ if ( !class_exists( 'WpAppKitOneSignal' ) ) {
         public static function add_onesignal_service_worker( $service_worker_content, $app_id ) {
             
             if ( !WpakAddons::addon_activated_for_app( self::slug, $app_id ) ) {
-                return $manifest;
+                return $service_worker_content;
             }
 
             $onesignal_service_worker = "importScripts('https://cdn.onesignal.com/sdks/OneSignalSDK.js');\n\n";
