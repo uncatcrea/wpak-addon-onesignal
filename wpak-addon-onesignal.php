@@ -40,7 +40,7 @@ if ( !class_exists( 'WpAppKitOneSignal' ) ) {
          * @return array            $addons            Addons with OneSignal (this one).
          */
         public static function wpak_addons( $addons ) {
-            $addon = new WpakAddon( 'OneSignal for WP AppKit', self::slug );
+            $addon = new WpakAddon( 'OneSignal for WP AppKit', self::slug, ['ios','android','pwa'] );
 
             $addon->set_location( __FILE__ );
 
