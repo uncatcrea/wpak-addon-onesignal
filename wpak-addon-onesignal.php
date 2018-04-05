@@ -44,9 +44,9 @@ if ( !class_exists( 'WpAppKitOneSignal' ) ) {
 
             $addon->set_location( __FILE__ );
 
-            //Native plateforms JS:
-            $addon->add_js( 'js/wpak-onesignal.js', 'module' );
-            $addon->add_js( 'js/wpak-onesignal-app.js', 'theme', 'after' ); //After theme so that we can catch notification events in theme.
+            //Native plateforms JS (don't include it for PWA):
+            $addon->add_js( 'js/wpak-onesignal.js', 'module', '', ['android','ios'] );
+            $addon->add_js( 'js/wpak-onesignal-app.js', 'theme', 'after', ['android','ios'] ); //After theme so that we can catch notification events in theme.
 
             $addon->require_php( dirname(__FILE__) .'/wpak-onesignal-bo-settings.php' );
 
@@ -68,7 +68,7 @@ if ( !class_exists( 'WpAppKitOneSignal' ) ) {
          */
         public static function wpak_default_phonegap_build_plugins( $default_plugins, $export_type, $app_id ) {
             
-            if( WpakAddons::addon_activated_for_app( self::slug, $app_id ) ) {
+            if( WpakAddons::addon_activated_for_app( self::slug, $app_id ) && $export_type !== 'pwa' ) {
                 $default_plugins['onesignal-cordova-plugin'] = array( 'source' => 'npm' );
             }
 
