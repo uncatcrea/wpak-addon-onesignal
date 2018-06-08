@@ -28,6 +28,7 @@ if ( !class_exists( 'WpAppKitOneSignal' ) ) {
             add_filter( 'wpak_app_index_content', array( __CLASS__, 'add_onesignal_script_to_index' ), 10, 3 );
             add_filter( 'wpak_pwa_manifest', array( __CLASS__, 'add_onesignal_pwa_manifest_fields' ), 10, 2 );
             add_filter( 'wpak_pwa_service_worker', array( __CLASS__, 'add_onesignal_service_worker' ), 10, 2 );
+            add_filter( 'wpak_config_xml_custom_preferences', array( __CLASS__, 'add_min_sdk_preference'), 10 );
         }
 
         /**
@@ -123,6 +124,14 @@ if ( !class_exists( 'WpAppKitOneSignal' ) ) {
             $service_worker_content = $onesignal_service_worker . $service_worker_content;
 
             return $service_worker_content;
+        }
+
+        public static function add_min_sdk_preference( $preferences ) {
+            //Force minSdkVersion to 15 to avoid the "uses-sdk:minSdkVersion 14 cannot be smaller than 
+            //version 15 declared in library" error when building on PhoneGap build
+            //(see https://github.com/OneSignal/OneSignal-Cordova-SDK/issues/375#issuecomment-392872631 )
+            $preferences[] = [ 'name' => 'android-minSdkVersion', 'value' => '15' ];
+            return $preferences;
         }
 
         /**
