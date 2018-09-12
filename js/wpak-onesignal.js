@@ -22,7 +22,15 @@ define( function ( require ) {
 		//Use App.on( 'info:onesignal:notification-opened', callback ) in theme to 
 		//do something when a notification is opened.
 		var notificationOpenedCallback = function ( notification_data ) {
+			Utils.log( 'OneSignal notification received', notification_data );
 			App.triggerInfo( 'onesignal:notification-opened', notification_data );
+			if ( notification_data.hasOwnProperty('notification')
+				 && notification_data.notification.payload.hasOwnProperty('additionalData')
+				 && notification_data.notification.payload.additionalData.hasOwnProperty('wpak_route')
+				 && notification_data.notification.payload.additionalData.wpak_route.length ) {
+				Utils.log('Deeplink route received from additionalData:', notification_data.notification.payload.additionalData.wpak_route);
+				window.wpak_open_url = notification_data.notification.payload.additionalData.wpak_route;
+			}
 		};
 
 		window.plugins.OneSignal
