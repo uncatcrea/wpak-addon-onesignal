@@ -179,7 +179,7 @@ if ( !class_exists( 'WpAppKitOneSignal' ) ) {
             
             $onesignal_wp_settings = OneSignal::get_onesignal_settings();
 
-            if ($send_to_mobile_platforms == true) {
+            if ($onesignal_wp_settings['send_to_mobile_platforms'] == true) {
                 //Goal: We don't want to modify the original $fields array, because we want the original 
                 //web push notification to go out unmodified. However, we want to send an additional notification 
                 //to Android and iOS devices with an additionalData property.
