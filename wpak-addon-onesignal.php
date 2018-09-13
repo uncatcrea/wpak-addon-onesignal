@@ -93,11 +93,24 @@ if ( !class_exists( 'WpAppKitOneSignal' ) ) {
             $onesignal_script = '<script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async=""></script>'."\r\n";
             $onesignal_script .= '<script>'."\r\n";
             $onesignal_script .= '    var OneSignal = window.OneSignal || [];'."\r\n";
+
             $onesignal_script .= '    OneSignal.push(function() {'."\r\n";
             $onesignal_script .= '        OneSignal.init({'."\r\n";
             $onesignal_script .= '            appId: "'. esc_attr( $app_id ) .'",'."\r\n";
             $onesignal_script .= '        });'."\r\n";
             $onesignal_script .= '    });'."\r\n";
+
+            //Handle wpak_launch_route:
+            //(see https://documentation.onesignal.com/docs/web-push-sdk#section--addlistenerfornotificationopened-)
+            $onesignal_script .= '    OneSignal.push(["addListenerForNotificationOpened", function(notification_data) {'."\r\n";
+            $onesignal_script .= '        console.log("Received OneSignal NotificationOpened:", notification_data);  '."\r\n";
+            $onesignal_script .= '        if ( notification_data.hasOwnProperty(\'data\')'."\r\n";
+            $onesignal_script .= '            && notification_data.data.hasOwnProperty(\'wpak_launch_route\')'."\r\n";
+            $onesignal_script .= '            && notification_data.data.wpak_launch_route.length ) {'."\r\n";
+            $onesignal_script .= '            window.location.href = notification_data.data.wpak_launch_route;'."\r\n";
+            $onesignal_script .= '        }'."\r\n";
+            $onesignal_script .= '    }]);'."\r\n";
+
             $onesignal_script .= '</script>'."\r\n";
 
             $index_content = str_replace( '</head>', "\r\n". $onesignal_script ."\r\n</head>", $index_content );
