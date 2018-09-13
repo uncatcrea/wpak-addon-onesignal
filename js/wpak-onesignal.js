@@ -26,10 +26,10 @@ define( function ( require ) {
 			App.triggerInfo( 'onesignal:notification-opened', notification_data );
 			if ( notification_data.hasOwnProperty('notification')
 				 && notification_data.notification.payload.hasOwnProperty('additionalData')
-				 && notification_data.notification.payload.additionalData.hasOwnProperty('wpak_route')
-				 && notification_data.notification.payload.additionalData.wpak_route.length ) {
-				Utils.log('Deeplink route received from additionalData:', notification_data.notification.payload.additionalData.wpak_route);
-				window.wpak_open_url = notification_data.notification.payload.additionalData.wpak_route;
+				 && notification_data.notification.payload.additionalData.hasOwnProperty('wpak_launch_route')
+				 && notification_data.notification.payload.additionalData.wpak_launch_route.length ) {
+				Utils.log('Deeplink route received from additionalData:', notification_data.notification.payload.additionalData.wpak_launch_route);
+				window.wpak_open_url = notification_data.notification.payload.additionalData.wpak_launch_route;
 			}
 		};
 

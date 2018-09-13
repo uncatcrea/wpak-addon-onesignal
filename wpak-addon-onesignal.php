@@ -29,6 +29,9 @@ if ( !class_exists( 'WpAppKitOneSignal' ) ) {
             add_filter( 'wpak_pwa_manifest', array( __CLASS__, 'add_onesignal_pwa_manifest_fields' ), 10, 2 );
             add_filter( 'wpak_pwa_service_worker', array( __CLASS__, 'add_onesignal_service_worker' ), 10, 2 );
             add_filter( 'wpak_config_xml_custom_preferences', array( __CLASS__, 'add_min_sdk_preference'), 10, 2 );
+
+            //OneSignal's WordPress plugin integration: allow to send Mobile apps notifications with post deeplink:
+            add_filter( 'onesignal_send_notification', array( __CLASS__, 'add_launch_route_to_onesignal_payload'), 10, 4 );
         }
 
         /**
@@ -161,6 +164,112 @@ if ( !class_exists( 'WpAppKitOneSignal' ) ) {
                 'author' => 'Uncategorized Creations',
             );
             return $licenses;
+        }
+
+        /**
+         * Send a specific push for mobile apps only, to be able to use our own "wpak_launch_route" (passed
+         * in OneSignal's "additionnal data") instead of opening the notifications's url in the browser.
+         * 
+         * Inspired by OneSignal plugin's suggestion here: 
+         * https://documentation.onesignal.com/docs/web-push-wordpress-faq
+         *
+         * Note: this hook callback will only be called if OneSignal's WordPress plugin is installed.
+         */
+        public static function add_launch_route_to_onesignal_payload( $fields, $new_status, $old_status, $post ) {
+            
+            $onesignal_wp_settings = OneSignal::get_onesignal_settings();
+
+            if ($send_to_mobile_platforms == true) {
+                //Goal: We don't want to modify the original $fields array, because we want the original 
+                //web push notification to go out unmodified. However, we want to send an additional notification 
+                //to Android and iOS devices with an additionalData property.
+                $fields_mobile = $fields;
+                $fields_mobile['isAndroid'] = true;
+                $fields_mobile['isIos'] = true;
+                $fields_mobile['isAnyWeb'] = false;
+                $fields_mobile['isWP'] = false;
+                $fields_mobile['isAdm'] = false;
+                $fields_mobile['isChrome'] = false;
+
+                //Set our WP-AppKit custom launch route:
+                $fields_mobile['data'] = array(
+                    "wpak_launch_route" => "single/posts/". $post->ID
+                );
+
+                //Important: Unset the URL to prevent opening the browser when the notification is clicked
+                unset($fields_mobile['url']);
+
+                self::send_onesignal_notification( $fields_mobile );
+
+                //Remove mobile apps push from the main web push:
+                $fields['isAndroid'] = false;
+                $fields['isIos'] = false;
+            }
+
+            //Return fields for the main web push notification to browsers
+            return $fields;
+        }
+
+        /**
+         * Manually send a OneSignal push
+         * 
+         * Inspired by OneSignal plugin's suggestion here: 
+         * https://documentation.onesignal.com/docs/web-push-wordpress-faq
+         * and OneSignal_Admin::send_notification_on_wp_post() (onesignal-admin.php)
+         */
+        protected static function send_onesignal_notification( $fields_mobile ) {
+
+            onesignal_debug('Initializing cURL (Custom push from addon OneSignal for WP-AppKit).');
+            $ch = curl_init();
+            $onesignal_post_url = "https://onesignal.com/api/v1/notifications";
+            $onesignal_wp_settings = OneSignal::get_onesignal_settings();
+            $onesignal_auth_key = $onesignal_wp_settings['app_rest_api_key'];
+            curl_setopt($ch, CURLOPT_URL, $onesignal_post_url);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+                'Content-Type: application/json',
+                'Authorization: Basic ' . $onesignal_auth_key
+            ));
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HEADER, true);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields_mobile));
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+            if ( defined('ONESIGNAL_DEBUG') ) {
+                //Turn off host verification if SSL errors for local testing
+                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+            }
+
+            if (class_exists('WDS_Log_Post')) {
+                //Optional: cURL settings to help log cURL output response
+                curl_setopt($ch, CURLOPT_FAILONERROR, false);
+                curl_setopt($ch, CURLOPT_HTTP200ALIASES, array(400));
+                curl_setopt($ch, CURLOPT_VERBOSE, true);
+                curl_setopt($ch, CURLOPT_STDERR, $out);
+            }
+
+            $response = curl_exec($ch);
+
+            if ( defined('ONESIGNAL_DEBUG') ) {
+                //Optional: Log cURL output response
+                fclose($out);
+                $debug_output = ob_get_clean();
+                $curl_effective_url = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
+                $curl_http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                $curl_total_time = curl_getinfo($ch, CURLINFO_TOTAL_TIME);
+                onesignal_debug('OneSignal API POST Data:', $fields);
+                onesignal_debug('OneSignal API URL:', $curl_effective_url);
+                onesignal_debug('OneSignal API Response Status Code:', $curl_http_code);
+                if ($curl_http_code != 200) {
+                    onesignal_debug('cURL Request Time:', $curl_total_time, 'seconds');
+                    onesignal_debug('cURL Error Number:', curl_errno($ch));
+                    onesignal_debug('cURL Error Description:', curl_error($ch));
+                    onesignal_debug('cURL Response:', print_r($response, true));
+                    onesignal_debug('cURL Verbose Log:', $debug_output);
+                }
+            }
+
+            curl_close($ch);
         }
 
     }
