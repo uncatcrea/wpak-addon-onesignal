@@ -2,8 +2,16 @@
 /*
   Plugin Name: OneSignal for WP-AppKit
   Description: Subscribe users and send notifications without pain with OneSignal
+  Author: Uncategorized Creations
+  Author URI:  http://getwpappkit.com
   Version: 1.0.0
- */
+  License:     GPL-2.0+
+  License URI: http://www.gnu.org/licenses/gpl-2.0.txt
+  Copyright:   2013-2018 Uncategorized Creations
+
+  This plugin, like WordPress, is licensed under the GPL.
+  Use it to make something cool, have fun, and share what you've learned with others.
+*/
 
 if ( !class_exists( 'WpAppKitOneSignal' ) ) {
 
