@@ -233,14 +233,14 @@ if ( !class_exists( 'WpAppKitOneSignal' ) ) {
 
         /**
          * Manually send a OneSignal push
-         * 
-         * Inspired by OneSignal plugin's suggestion here: 
+         *
+         * Inspired by OneSignal plugin's suggestion here:
          * https://documentation.onesignal.com/docs/web-push-wordpress-faq
          * and OneSignal_Admin::send_notification_on_wp_post() (onesignal-admin.php)
          */
         protected static function send_onesignal_notification( $fields_mobile ) {
 
-            onesignal_debug('Initializing cURL (Custom push from addon OneSignal for WP-AppKit).');
+            self::onesignal_debug('Initializing cURL (Custom push from addon OneSignal for WP-AppKit).');
             $ch = curl_init();
             $onesignal_post_url = "https://onesignal.com/api/v1/notifications";
             $onesignal_wp_settings = OneSignal::get_onesignal_settings();
@@ -278,19 +278,28 @@ if ( !class_exists( 'WpAppKitOneSignal' ) ) {
                 $curl_effective_url = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
                 $curl_http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
                 $curl_total_time = curl_getinfo($ch, CURLINFO_TOTAL_TIME);
-                onesignal_debug('OneSignal API POST Data:', $fields);
-                onesignal_debug('OneSignal API URL:', $curl_effective_url);
-                onesignal_debug('OneSignal API Response Status Code:', $curl_http_code);
+                self::onesignal_debug('OneSignal API POST Data:', $fields);
+                self::onesignal_debug('OneSignal API URL:', $curl_effective_url);
+                self::onesignal_debug('OneSignal API Response Status Code:', $curl_http_code);
                 if ($curl_http_code != 200) {
-                    onesignal_debug('cURL Request Time:', $curl_total_time, 'seconds');
-                    onesignal_debug('cURL Error Number:', curl_errno($ch));
-                    onesignal_debug('cURL Error Description:', curl_error($ch));
-                    onesignal_debug('cURL Response:', print_r($response, true));
-                    onesignal_debug('cURL Verbose Log:', $debug_output);
+                    self::onesignal_debug('cURL Request Time:', $curl_total_time, 'seconds');
+                    self::onesignal_debug('cURL Error Number:', curl_errno($ch));
+                    self::onesignal_debug('cURL Error Description:', curl_error($ch));
+                    self::onesignal_debug('cURL Response:', print_r($response, true));
+                    self::onesignal_debug('cURL Verbose Log:', $debug_output);
                 }
             }
 
             curl_close($ch);
+        }
+
+        protected static function onesignal_debug() {
+            //Function 'onesignal_debug' has been removed in last version of WordPress "OneSignal Push Notifications" plugin.
+            //This is a temporary fix to avoid PHP errors:
+            if ( function_exists('onesignal_debug' ) ) {
+                $args = func_get_args();
+                call_user_func_array('onesignal_debug', $args);
+            }
         }
 
     }
