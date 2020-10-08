@@ -12,6 +12,9 @@ This add-on currently supports and is tested with iOS and Android only.
 Of course there is, and it's publicly available. You can check it out [here](https://uncategorized-creations.com/wp-appkit/doc/addons/onesignal/).
 
 # Changelog
+## 1.0.2
+* Add support for new WP-AppKit export plaforms: Cordova and VoltBuilder
+
 ## 1.0.1
 * Temporary fix to avoid PHP error when calling "OneSignal Push Notifications" plugin's onesignal_debug() function. (This function has been removed in last "OneSignal Push Notifications" plugin's version)
 
