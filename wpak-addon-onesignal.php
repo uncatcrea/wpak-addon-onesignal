@@ -52,7 +52,7 @@ if ( !class_exists( 'WpAppKitOneSignal' ) ) {
          * @return array            $addons            Addons with OneSignal (this one).
          */
         public static function wpak_addons( $addons ) {
-            $addon = new WpakAddon( 'OneSignal for WP AppKit', self::slug, ['ios','android','pwa'] );
+            $addon = new WpakAddon( 'OneSignal for WP AppKit', self::slug, ['ios','android','pwa','android-cordova','android-voltbuilder'] );
 
             $addon->set_location( __FILE__ );
 
@@ -79,7 +79,7 @@ if ( !class_exists( 'WpAppKitOneSignal' ) ) {
          * @return array            $default_plugins            Plugins with OneSignal one in addition.
          */
         public static function wpak_default_phonegap_build_plugins( $default_plugins, $export_type, $app_id ) {
-            
+
             if( WpakAddons::addon_activated_for_app( self::slug, $app_id ) && $export_type !== 'pwa' ) {
                 $default_plugins['onesignal-cordova-plugin'] = array( 'source' => 'npm' );
             }
@@ -91,7 +91,7 @@ if ( !class_exists( 'WpAppKitOneSignal' ) ) {
          * Add OneSignal script to index.html
          */
         public static function add_onesignal_script_to_index( $index_content, $app_id, $export_type ) {
-            
+
             if ( !WpakAddons::addon_activated_for_app( self::slug, $app_id ) || $export_type !== 'pwa' ) {
                 return $index_content;
             }
@@ -139,7 +139,7 @@ if ( !class_exists( 'WpAppKitOneSignal' ) ) {
         }
 
         public static function add_onesignal_service_worker( $service_worker_content, $app_id ) {
-            
+
             if ( !WpakAddons::addon_activated_for_app( self::slug, $app_id ) ) {
                 return $service_worker_content;
             }
@@ -153,7 +153,7 @@ if ( !class_exists( 'WpAppKitOneSignal' ) ) {
         public static function add_min_sdk_preference( $preferences, $app_id ) {
 
             if ( WpakAddons::addon_activated_for_app( self::slug, $app_id ) ) {
-                //Force minSdkVersion to 15 to avoid the "uses-sdk:minSdkVersion 14 cannot be smaller than 
+                //Force minSdkVersion to 15 to avoid the "uses-sdk:minSdkVersion 14 cannot be smaller than
                 //version 15 declared in library" error when building on PhoneGap build
                 //(see https://github.com/OneSignal/OneSignal-Cordova-SDK/issues/375#issuecomment-392872631 )
                 $preferences[] = [ 'name' => 'android-minSdkVersion', 'value' => '15' ];
@@ -181,7 +181,7 @@ if ( !class_exists( 'WpAppKitOneSignal' ) ) {
             $licenses[] = array(
                 'file' => __FILE__,
                 'item_name' => 'OneSignal for WP-AppKit',
-                'version' => '1.0.0',
+                'version' => '1.0.1',
                 'author' => 'Uncategorized Creations',
             );
             return $licenses;
@@ -190,19 +190,19 @@ if ( !class_exists( 'WpAppKitOneSignal' ) ) {
         /**
          * Send a specific push for mobile apps only, to be able to use our own "wpak_launch_route" (passed
          * in OneSignal's "additionnal data") instead of opening the notifications's url in the browser.
-         * 
-         * Inspired by OneSignal plugin's suggestion here: 
+         *
+         * Inspired by OneSignal plugin's suggestion here:
          * https://documentation.onesignal.com/docs/web-push-wordpress-faq
          *
          * Note: this hook callback will only be called if OneSignal's WordPress plugin is installed.
          */
         public static function add_launch_route_to_onesignal_payload( $fields, $new_status, $old_status, $post ) {
-            
+
             $onesignal_wp_settings = OneSignal::get_onesignal_settings();
 
             if ($onesignal_wp_settings['send_to_mobile_platforms'] == true) {
-                //Goal: We don't want to modify the original $fields array, because we want the original 
-                //web push notification to go out unmodified. However, we want to send an additional notification 
+                //Goal: We don't want to modify the original $fields array, because we want the original
+                //web push notification to go out unmodified. However, we want to send an additional notification
                 //to Android and iOS devices with an additionalData property.
                 $fields_mobile = $fields;
                 $fields_mobile['isAndroid'] = true;
