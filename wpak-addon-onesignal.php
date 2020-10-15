@@ -57,8 +57,8 @@ if ( !class_exists( 'WpAppKitOneSignal' ) ) {
             $addon->set_location( __FILE__ );
 
             //Native plateforms JS (don't include it for PWA):
-            $addon->add_js( 'js/wpak-onesignal.js', 'module', '', ['android','ios'] );
-            $addon->add_js( 'js/wpak-onesignal-app.js', 'theme', 'after', ['android','ios'] ); //After theme so that we can catch notification events in theme.
+            $addon->add_js( 'js/wpak-onesignal.js', 'module', '', ['android','ios','android-cordova','android-voltbuilder'] );
+            $addon->add_js( 'js/wpak-onesignal-app.js', 'theme', 'after', ['android','ios','android-cordova','android-voltbuilder'] ); //After theme so that we can catch notification events in theme.
 
             $addon->require_php( dirname(__FILE__) .'/wpak-onesignal-bo-settings.php' );
 
